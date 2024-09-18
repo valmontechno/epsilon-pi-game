@@ -9,6 +9,7 @@ namespace EADK {
 
 class Color {
 public:
+  constexpr Color() : m_value(0) {};
   constexpr Color(uint32_t rgb) : m_value(((rgb&0xF80000)>>8)|((rgb&0x00FC00)>>5)|((rgb&0x0000F8)>>3)) {}
   constexpr operator eadk_color_t() const { return (eadk_color_t)m_value; }
 private:
@@ -49,7 +50,7 @@ static_assert(sizeof(EADK::Rect) == sizeof(eadk_rect_t), "EADK::Rect should matc
 namespace Screen {
   constexpr uint16_t Width = EADK_SCREEN_WIDTH;
   constexpr uint16_t Height = EADK_SCREEN_HEIGHT;
-  constexpr Rect Rect(0, 0, Width, Height);
+  constexpr EADK::Rect Rect(0, 0, Width, Height);
 }
 
 namespace Display {

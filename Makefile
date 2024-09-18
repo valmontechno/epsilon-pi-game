@@ -1,4 +1,4 @@
-NAME = hello-world
+NAME = pi-game
 Q ?= @
 CC = arm-none-eabi-gcc
 CXX = arm-none-eabi-g++
@@ -13,6 +13,7 @@ endef
 
 src = $(addprefix src/,\
   main.cpp \
+  font.cpp \
 )
 
 CPPFLAGS = -std=c++11 -fno-exceptions
