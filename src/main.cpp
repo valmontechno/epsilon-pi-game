@@ -113,21 +113,19 @@ int main()
 {
   Display::pushRectUniform(Screen::Rect, bgColor);
 
-  // Display::pushRectUniform(Rect(20, 100, 20, 36), 0xaaaaff);
-
   // game();
 
-  printChar('0', Color(0xff0000), 20 * 0, 100);
-  printChar('1', Color(0xff0000), 20 * 1, 100);
-  printChar('2', Color(0xff0000), 20 * 2, 100);
-  printChar('3', Color(0xff0000), 20 * 3, 100);
-  printChar('4', Color(0xff0000), 20 * 4, 100);
-  printChar('5', Color(0xff0000), 20 * 5, 100);
-  printChar('6', Color(0xff0000), 20 * 6, 100);
-  printChar('7', Color(0xff0000), 20 * 7, 100);
-  printChar('8', Color(0xff0000), 20 * 8, 100);
-  printChar('9', Color(0xff0000), 20 * 9, 100);
-  printChar('.', Color(0xff0000), 20 * 10, 100);
+  printChar('0', 20*0, 100, textColorRGB, bgColorRGB);
+  printChar('1', 20*1, 100, textColorRGB, bgColorRGB);
+  printChar('2', 20*2, 100, textColorRGB, bgColorRGB);
+  printChar('3', 20*3, 100, textColorRGB, bgColorRGB);
+  printChar('4', 20*4, 100, textColorRGB, bgColorRGB);
+  printChar('5', 20*5, 100, textColorRGB, bgColorRGB);
+  printChar('6', 20*6, 100, textColorRGB, bgColorRGB);
+  printChar('7', 20*7, 100, textColorRGB, bgColorRGB);
+  printChar('8', 20*8, 100, textColorRGB, bgColorRGB);
+  printChar('9', 20*9, 100, textColorRGB, bgColorRGB);
+  printChar('.', 20*10, 100, textColorRGB, bgColorRGB);
 
   Display::drawString("Game over", Point(0, 0), true, 0xff0000, bgColor);
 

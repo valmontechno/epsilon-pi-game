@@ -14,6 +14,7 @@ endef
 src = $(addprefix src/,\
   main.cpp \
   font.cpp \
+  color_rgb.cpp \
 )
 
 CPPFLAGS = -std=c++11 -fno-exceptions

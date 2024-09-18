@@ -11,6 +11,7 @@ class Color {
 public:
   constexpr Color() : m_value(0) {};
   constexpr Color(uint32_t rgb) : m_value(((rgb&0xF80000)>>8)|((rgb&0x00FC00)>>5)|((rgb&0x0000F8)>>3)) {}
+  constexpr Color(uint8_t r, uint8_t g, uint8_t b) : m_value(((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)) {}
   constexpr operator eadk_color_t() const { return (eadk_color_t)m_value; }
 private:
   uint16_t m_value;
