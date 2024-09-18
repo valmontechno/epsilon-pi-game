@@ -14,6 +14,7 @@ endef
 src = $(addprefix src/,\
   main.cpp \
   font.cpp \
+  font_characters.cpp \
   color_rgb.cpp \
 )
 

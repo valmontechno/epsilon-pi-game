@@ -1,7 +1,7 @@
 #include "color_rgb.h"
 #include "eadkpp.h"
 
-ColorRGB::operator Color()
+ColorRGB::operator Color() const
 {
     return Color(r, g, b);
 }

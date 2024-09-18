@@ -1,26 +1,72 @@
 #include "eadkpp.h"
 #include "palette.h"
 #include "font.h"
+#include "font_characters.h"
 
 using namespace EADK;
 
 extern const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "Pi";
 extern const uint32_t eadk_api_level __attribute__((section(".rodata.eadk_api_level"))) = 0;
 
+constexpr uint16_t piDigits = 23 - 1;
 const char* pi = "3.14159265358979323846";
+
+constexpr uint8_t fieldLength = 13;
+constexpr uint8_t fieldOffset = Screen::Width / 2 - (fieldLength * charWidth) / 2;
 
 Keyboard::State keyState;
 
-char buffer[255];
+uint8_t buffer[fieldLength];
 
-void printBuffer(Color color)
+void printBuffer(ColorRGB textColor=textColorRGB)
 {
-  Display::drawString(buffer, Point(0, 0), true, color, bgColor);
+  for (uint8_t i = 0; i < fieldLength; i++)
+  {
+    printChar(buffer[i], fieldOffset + i * charWidth, 100, textColor, bgColorRGB);
+  }
 }
 
-void clearField()
+void printBlanck()
 {
-  Display::drawString("                                        ", Point(0, 0), true, textColor, bgColor);
+  Display::pushRectUniform(Rect(fieldOffset, 100, fieldLength * charWidth, charHeight), bgColorRGB);
+}
+
+void cleanBuffer()
+{
+  for (uint8_t i = 0; i < fieldLength; i++)
+  {
+    buffer[i] = ' ';
+  }
+}
+
+void writePi(uint16_t digits)
+{
+  if (digits < fieldLength)
+  {
+    cleanBuffer();
+    for (uint16_t i = 0; i < digits; i++)
+    {
+      buffer[i] = pi[i];
+    }
+  }
+  else
+  {
+    uint16_t offset = digits - fieldLength;
+    for (uint16_t i = 0; i < fieldLength; i++)
+    {
+      buffer[i] = pi[i + offset];
+    }
+  }
+}
+
+void spellPi(uint16_t digits)
+{
+  for (uint16_t i = 1; i <= digits; i++)
+  {
+    writePi(i);
+    printBuffer();
+    Timing::msleep(500);
+  }
 }
 
 bool keyPress(Keyboard::Key key)
@@ -56,85 +102,65 @@ char waitForInput()
   }
 }
 
-void spellPi(uint8_t digitProgress)
+int main()
 {
-  for (uint8_t i = 1; i <= digitProgress; i++)
-  {
-    Timing::msleep(700);
-    buffer[i] = pi[i];
-    buffer[i + 1] = 0;
-    printBuffer(textColor);
-  }
-}
+  Display::pushRectUniform(Screen::Rect, bgColorRGB);
 
-bool game()
-{
-  uint8_t digitProgress = 3;
+  cleanBuffer();
 
-  while (true)
+// Game loop
+  bool game = true;
+  uint16_t digitProgress = 4;
+
+  while (game)
   {
     spellPi(digitProgress);
     Timing::msleep(1000);
+    printBlanck();
 
-    clearField();
-
-    for (uint8_t i = 0; i <= digitProgress; i++)
+    for (uint16_t i = 0; i < digitProgress; i++)
     {
       if (waitForInput() == pi[i])
       {
-        buffer[i] = pi[i];
-        buffer[i + 1] = 0;
-        printBuffer(textColor);
+        // right digit
+        writePi(i + 1);
+        printBuffer();
       }
       else
       {
-        return false; // game over
+        // game over
+        // writePi(i + 1);
+        // printBuffer(errorColorRGB);
+        // game = false;
+        // break;
       }
 
       if (keyState.keyDown(Keyboard::Key::Back))
       {
-        return true;
+        return 0;
       }
     }
 
-    for (uint8_t i = 0; i < 2; i++)
+    // right sequence
+    if (game)
     {
-      printBuffer(rightColor);
-      Timing::msleep(100);
-      clearField();
-      Timing::msleep(100);
+      for (uint8_t i = 0; i < 2; i++)
+      {
+        Timing::msleep(100);
+        printBuffer(rightColorRGB);
+        Timing::msleep(100);
+        printBlanck();
+      }
+      Timing::msleep(1000);
+
+      digitProgress++;
     }
 
-    digitProgress++;
   }
-}
-
-int main()
-{
-  Display::pushRectUniform(Screen::Rect, bgColor);
-
-  // game();
-
-  printChar('0', 20*0, 100, textColorRGB, bgColorRGB);
-  printChar('1', 20*1, 100, textColorRGB, bgColorRGB);
-  printChar('2', 20*2, 100, textColorRGB, bgColorRGB);
-  printChar('3', 20*3, 100, textColorRGB, bgColorRGB);
-  printChar('4', 20*4, 100, textColorRGB, bgColorRGB);
-  printChar('5', 20*5, 100, textColorRGB, bgColorRGB);
-  printChar('6', 20*6, 100, textColorRGB, bgColorRGB);
-  printChar('7', 20*7, 100, textColorRGB, bgColorRGB);
-  printChar('8', 20*8, 100, textColorRGB, bgColorRGB);
-  printChar('9', 20*9, 100, textColorRGB, bgColorRGB);
-  printChar('.', 20*10, 100, textColorRGB, bgColorRGB);
-
-  Display::drawString("Game over", Point(0, 0), true, 0xff0000, bgColor);
+// end Game loop
 
   while (true) {
-
-    // Let's code !
-
     Timing::msleep(100);
-
     keyState = Keyboard::scan();
     if (keyState.keyDown(Keyboard::Key::Home) || keyState.keyDown(Keyboard::Key::Back)) return 0;
   }
