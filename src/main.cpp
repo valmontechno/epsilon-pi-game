@@ -26,6 +26,17 @@ void printBuffer(ColorRGB textColor=textColorRGB)
   }
 }
 
+void printBufferEmphasized(uint16_t digits, ColorRGB textColor, ColorRGB lastCharColor)
+{
+  for (uint8_t i = 0; i < fieldLength; i++)
+  {
+    ColorRGB color = digits < fieldLength ?
+      (i + 1 == digits ? lastCharColor : textColor) :
+      (i + 1 == fieldLength ? lastCharColor : textColor);
+    printChar(buffer[i], fieldOffset + i * charWidth, 100, color, bgColorRGB);
+  }
+}
+
 void printBlanck()
 {
   Display::pushRectUniform(Rect(fieldOffset, 100, fieldLength * charWidth, charHeight), bgColorRGB);
@@ -56,16 +67,6 @@ void writePi(uint16_t digits)
     {
       buffer[i] = pi[i + offset];
     }
-  }
-}
-
-void spellPi(uint16_t digits)
-{
-  for (uint16_t i = 1; i <= digits; i++)
-  {
-    writePi(i);
-    printBuffer();
-    Timing::msleep(500);
   }
 }
 
@@ -102,25 +103,25 @@ char waitForInput()
   }
 }
 
-int main()
+void game()
 {
-  Display::pushRectUniform(Screen::Rect, bgColorRGB);
+  uint16_t digitProgress = 13;
 
-  cleanBuffer();
-
-// Game loop
-  bool game = true;
-  uint16_t digitProgress = 4;
-
-  while (game)
+  while (true)
   {
-    spellPi(digitProgress);
+    for (uint16_t i = 1; i <= digitProgress; i++)
+    {
+      writePi(i);
+      printBuffer();
+      Timing::msleep(400);
+    }
     Timing::msleep(1000);
     printBlanck();
 
     for (uint16_t i = 0; i < digitProgress; i++)
     {
-      if (waitForInput() == pi[i])
+      char input = waitForInput();
+      if (input == pi[i])
       {
         // right digit
         writePi(i + 1);
@@ -129,35 +130,45 @@ int main()
       else
       {
         // game over
-        // writePi(i + 1);
-        // printBuffer(errorColorRGB);
-        // game = false;
-        // break;
+        uint16_t digits = i + 1;
+        writePi(i + 1);
+        buffer[(digits < fieldLength ? digits : fieldLength) - 1] = input;
+        printBufferEmphasized(digits, textColorRGB, errorColorRGB);
+        Timing::msleep(1000);
+        buffer[(digits < fieldLength ? digits : fieldLength) - 1] = pi[i];
+        printBufferEmphasized(digits, textColorRGB, correctionColorRGB);
+        Timing::msleep(1000);
+        return;
       }
 
       if (keyState.keyDown(Keyboard::Key::Back))
       {
-        return 0;
+        return;
       }
     }
 
     // right sequence
-    if (game)
+    for (uint8_t i = 0; i < 2; i++)
     {
-      for (uint8_t i = 0; i < 2; i++)
-      {
-        Timing::msleep(100);
-        printBuffer(rightColorRGB);
-        Timing::msleep(100);
-        printBlanck();
-      }
-      Timing::msleep(1000);
-
-      digitProgress++;
+      Timing::msleep(100);
+      printBuffer(rightColorRGB);
+      Timing::msleep(100);
+      printBlanck();
     }
+    Timing::msleep(1000);
+
+    digitProgress++;
 
   }
-// end Game loop
+}
+
+int main()
+{
+  Display::pushRectUniform(Screen::Rect, bgColorRGB);
+
+  game();
+
+  Display::pushRectUniform(Screen::Rect, errorColorRGB);
 
   while (true) {
     Timing::msleep(100);

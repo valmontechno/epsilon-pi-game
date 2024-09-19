@@ -11,5 +11,6 @@ constexpr static ColorRGB textColorRGB(0x414041);
 constexpr static ColorRGB bgColorRGB(0xf6f6f6);
 constexpr static ColorRGB rightColorRGB(0x0075ff);
 constexpr static ColorRGB errorColorRGB(0xff5555);
+constexpr static ColorRGB correctionColorRGB(0x55ff55);
 
 #endif
