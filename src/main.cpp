@@ -12,17 +12,18 @@ constexpr uint16_t piDigits = 23 - 1;
 const char* pi = "3.14159265358979323846";
 
 constexpr uint8_t fieldLength = 13;
-constexpr uint8_t fieldOffset = Screen::Width / 2 - (fieldLength * charWidth) / 2;
+constexpr uint8_t fieldXOffset = (Screen::Width - (fieldLength * charWidth)) / 2;
+constexpr uint8_t fieldYOffset = (Screen::Height - charHeight) / 2;
 
 Keyboard::State keyState;
 
-uint8_t buffer[fieldLength];
+char buffer[fieldLength];
 
 void printBuffer(ColorRGB textColor=textColorRGB)
 {
   for (uint8_t i = 0; i < fieldLength; i++)
   {
-    printChar(buffer[i], fieldOffset + i * charWidth, 100, textColor, bgColorRGB);
+    printChar(buffer[i], fieldXOffset + i * charWidth, fieldYOffset, textColor, fieldColorRGB);
   }
 }
 
@@ -33,13 +34,13 @@ void printBufferEmphasized(uint16_t digits, ColorRGB textColor, ColorRGB lastCha
     ColorRGB color = digits < fieldLength ?
       (i + 1 == digits ? lastCharColor : textColor) :
       (i + 1 == fieldLength ? lastCharColor : textColor);
-    printChar(buffer[i], fieldOffset + i * charWidth, 100, color, bgColorRGB);
+    printChar(buffer[i], fieldXOffset + i * charWidth, fieldYOffset, color, fieldColorRGB);
   }
 }
 
 void printBlanck()
 {
-  Display::pushRectUniform(Rect(fieldOffset, 100, fieldLength * charWidth, charHeight), bgColorRGB);
+  Display::pushRectUniform(Rect(fieldXOffset, fieldYOffset, fieldLength * charWidth, charHeight), fieldColorRGB);
 }
 
 void cleanBuffer()
@@ -103,9 +104,23 @@ char waitForInput()
   }
 }
 
+void waitForOK()
+{
+  using Keyboard::Key;
+  do
+  {
+    keyState = Keyboard::scan();
+  } while (keyPress(Key::OK));
+  do
+  {
+    keyState = Keyboard::scan();
+  } while (! keyPress(Key::OK));
+  
+}
+
 void game()
 {
-  uint16_t digitProgress = 13;
+  uint16_t digitProgress = 22;
 
   while (true)
   {
@@ -132,12 +147,19 @@ void game()
         // game over
         uint16_t digits = i + 1;
         writePi(i + 1);
+
         buffer[(digits < fieldLength ? digits : fieldLength) - 1] = input;
         printBufferEmphasized(digits, textColorRGB, errorColorRGB);
-        Timing::msleep(1000);
+        Timing::msleep(200);
+        printBufferEmphasized(digits, textColorRGB, fieldColorRGB);
+        Timing::msleep(200);
+        printBufferEmphasized(digits, textColorRGB, errorColorRGB);
+        Timing::msleep(500);
+
         buffer[(digits < fieldLength ? digits : fieldLength) - 1] = pi[i];
         printBufferEmphasized(digits, textColorRGB, correctionColorRGB);
-        Timing::msleep(1000);
+        Timing::msleep(1500);
+
         return;
       }
 
@@ -159,12 +181,29 @@ void game()
 
     digitProgress++;
 
+    if (digitProgress > piDigits)
+    {
+      Display::drawString("GG - by Valmontechno", Point((Screen::Width - 10 * 20) / 2, (Screen::Height - 18) / 2), true, rightColorRGB, fieldColorRGB);
+      waitForOK();
+      return;
+    }
+    
+
   }
 }
 
 int main()
 {
   Display::pushRectUniform(Screen::Rect, bgColorRGB);
+  Display::pushRectUniform(Rect(fieldXOffset - 5, fieldYOffset - 5, fieldLength * charWidth + 10, charHeight + 10), borderColorRGB);
+  Display::pushRectUniform(Rect(fieldXOffset - 4, fieldYOffset - 4, fieldLength * charWidth + 8, charHeight +8), fieldColorRGB);
+
+  cleanBuffer();
+  buffer[0] = 'p';
+  buffer[1] = 'i';
+  printBuffer(rightColorRGB);
+
+  waitForOK();
 
   game();
 
