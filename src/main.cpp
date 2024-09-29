@@ -104,17 +104,17 @@ char waitForInput()
   }
 }
 
-void waitForOK()
+void waitForEXE()
 {
   using Keyboard::Key;
   do
   {
     keyState = Keyboard::scan();
-  } while (keyPress(Key::OK));
+  } while (keyPress(Key::EXE) || keyPress(Key::OK));
   do
   {
     keyState = Keyboard::scan();
-  } while (! keyPress(Key::OK));
+  } while (! (keyPress(Key::EXE) || keyPress(Key::OK)));
   
 }
 
@@ -184,7 +184,7 @@ void game()
     if (digitProgress > piDigits)
     {
       Display::drawString("GG - by Valmontechno", Point((Screen::Width - 10 * 20) / 2, (Screen::Height - 18) / 2), true, rightColorRGB, fieldColorRGB);
-      waitForOK();
+      waitForEXE();
       return;
     }
     
@@ -198,20 +198,16 @@ int main()
   Display::pushRectUniform(Rect(fieldXOffset - 5, fieldYOffset - 5, fieldLength * charWidth + 10, charHeight + 10), borderColorRGB);
   Display::pushRectUniform(Rect(fieldXOffset - 4, fieldYOffset - 4, fieldLength * charWidth + 8, charHeight +8), fieldColorRGB);
 
-  cleanBuffer();
-  buffer[0] = 'p';
-  buffer[1] = 'i';
-  printBuffer(rightColorRGB);
+  while (true)
+  {
+    cleanBuffer();
+    buffer[0] = 'p';
+    buffer[1] = 'i';
+    printBuffer();
+    Display::drawString("Press EXE", Point((Screen::Width - 10 * 9) / 2, (Screen::Height - 18) / 2), true, textColorRGB, fieldColorRGB);
 
-  waitForOK();
+    waitForEXE();
 
-  game();
-
-  Display::pushRectUniform(Screen::Rect, errorColorRGB);
-
-  while (true) {
-    Timing::msleep(100);
-    keyState = Keyboard::scan();
-    if (keyState.keyDown(Keyboard::Key::Home) || keyState.keyDown(Keyboard::Key::Back)) return 0;
+    game();
   }
 }
