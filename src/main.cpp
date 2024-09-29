@@ -101,21 +101,30 @@ char waitForInput()
     if (keyPress(Key::Eight)) return '8';
     if (keyPress(Key::Nine)) return '9';
     if (keyPress(Key::Dot)) return '.';
+    if (keyPress(Key::Back)) return ' ';
   }
 }
 
-void waitForEXE()
+bool waitForEXE()
 {
   using Keyboard::Key;
   do
   {
     keyState = Keyboard::scan();
-  } while (keyPress(Key::EXE) || keyPress(Key::OK));
-  do
+  } while (keyPress(Key::EXE) || keyPress(Key::OK) || keyPress(Key::Back) || keyPress(Key::Home));
+
+  while (true)
   {
     keyState = Keyboard::scan();
-  } while (! (keyPress(Key::EXE) || keyPress(Key::OK)));
-  
+    if (keyPress(Key::Back) || keyPress(Key::Home))
+    {
+      return true;
+    }
+    if (keyPress(Key::EXE) || keyPress(Key::OK))
+    {
+      return false;
+    }
+  }
 }
 
 void game()
@@ -136,7 +145,11 @@ void game()
     for (uint16_t i = 0; i < digitProgress; i++)
     {
       char input = waitForInput();
-      if (input == pi[i])
+      if (input == ' ')
+      {
+        return;
+      }
+      else if (input == pi[i])
       {
         // right digit
         writePi(i + 1);
@@ -160,11 +173,6 @@ void game()
         printBufferEmphasized(digits, textColorRGB, correctionColorRGB);
         Timing::msleep(1500);
 
-        return;
-      }
-
-      if (keyState.keyDown(Keyboard::Key::Back))
-      {
         return;
       }
     }
@@ -206,7 +214,10 @@ int main()
     printBuffer();
     Display::drawString("Press EXE", Point((Screen::Width - 10 * 9) / 2, (Screen::Height - 18) / 2), true, textColorRGB, fieldColorRGB);
 
-    waitForEXE();
+    if (waitForEXE())
+    {
+      return 0;
+    }
 
     game();
   }
