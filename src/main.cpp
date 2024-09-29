@@ -1,4 +1,5 @@
 #include "eadkpp.h"
+#include "pi_decimals.h"
 #include "palette.h"
 #include "font.h"
 #include "font_characters.h"
@@ -7,9 +8,6 @@ using namespace EADK;
 
 extern const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "Pi";
 extern const uint32_t eadk_api_level __attribute__((section(".rodata.eadk_api_level"))) = 0;
-
-constexpr uint16_t piDigits = 23 - 1;
-const char* pi = "3.14159265358979323846";
 
 constexpr uint8_t fieldLength = 13;
 constexpr uint8_t fieldXOffset = (Screen::Width - (fieldLength * charWidth)) / 2;
@@ -137,7 +135,7 @@ void game()
     {
       writePi(i);
       printBuffer();
-      Timing::msleep(400);
+      Timing::msleep(300);
     }
     Timing::msleep(1000);
     printBlanck();
