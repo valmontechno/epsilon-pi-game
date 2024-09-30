@@ -127,7 +127,7 @@ bool waitForEXE()
 
 void game()
 {
-  uint16_t digitProgress = 22;
+  uint16_t digitProgress = 4;
 
   while (true)
   {
