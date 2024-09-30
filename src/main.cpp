@@ -131,11 +131,12 @@ void game()
 
   while (true)
   {
+    // spell pi
     for (uint16_t i = 1; i <= digitProgress; i++)
     {
       writePi(i);
       printBuffer();
-      Timing::msleep(300);
+      Timing::msleep(i > digitProgress - fieldLength ? 300 : 100);
     }
     Timing::msleep(1000);
     printBlanck();
