@@ -1,6 +1,6 @@
-# C++ app template for Epsilon
+# π Game for Epsilon
 
-This is a sample C++ app to use on a [NumWorks calculator](https://www.numworks.com).
+A game to learn the decimals of π, on a [NumWorks calculator](https://www.numworks.com).
 
 ## Installation
 
