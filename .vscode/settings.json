@@ -2,7 +2,8 @@
     "files.associations": {
         "string": "cpp",
         "limits": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "sstream": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/arm-none-eabi-gcc"
 }

@@ -13,6 +13,8 @@ constexpr uint8_t fieldLength = 13;
 constexpr uint8_t fieldXOffset = (Screen::Width - (fieldLength * charWidth)) / 2;
 constexpr uint8_t fieldYOffset = (Screen::Height - charHeight) / 2;
 
+constexpr uint8_t scoreLength = 11;
+
 Keyboard::State keyState;
 
 char buffer[fieldLength];
@@ -125,6 +127,52 @@ bool waitForEXE()
   }
 }
 
+
+
+void printScore(uint16_t n, uint16_t m)
+{
+  m -= 1;
+  if (n > 1)
+  {
+    n -= 1;
+  }
+
+  char scoreBuffer[scoreLength + 1];
+  char *c = scoreBuffer + scoreLength;
+
+  *c = 0;
+
+  do
+  {
+    c--;
+    *c = '0' + m % 10;
+    m /= 10;
+  } while (m > 0);
+
+  c--;
+  *c = '/';
+
+  do
+  {
+    c--;
+    *c = '0' + n % 10;
+    n /= 10;
+  } while (n > 0);
+
+  while (c > scoreBuffer)
+  {
+    c--;
+    *c = ' ';
+  }
+
+  Display::drawString(scoreBuffer, Point(fieldXOffset + fieldLength * charWidth - scoreLength * 7, fieldYOffset - 5 - 18), false, borderColorRGB, bgColorRGB);
+}
+
+void printScoreBlanck()
+{
+  Display::pushRectUniform(Rect(fieldXOffset + fieldLength * charWidth - scoreLength * 7, fieldYOffset - 5 - 18, scoreLength * 7, 14), bgColorRGB);
+}
+
 void game()
 {
   uint16_t digitProgress = 4;
@@ -136,10 +184,13 @@ void game()
     {
       writePi(i);
       printBuffer();
+      printScore(i, digitProgress);
       Timing::msleep(i > digitProgress - fieldLength ? 300 : 100);
     }
     Timing::msleep(1000);
+
     printBlanck();
+    printScore(0, digitProgress);
 
     for (uint16_t i = 0; i < digitProgress; i++)
     {
@@ -151,14 +202,16 @@ void game()
       else if (input == pi[i])
       {
         // right digit
-        writePi(i + 1);
+        uint16_t digits = i + 1;
+        writePi(digits);
         printBuffer();
+        printScore(digits, digitProgress);
       }
       else
       {
         // game over
         uint16_t digits = i + 1;
-        writePi(i + 1);
+        writePi(digits);
 
         buffer[(digits < fieldLength ? digits : fieldLength) - 1] = input;
         printBufferEmphasized(digits, textColorRGB, errorColorRGB);
@@ -170,7 +223,7 @@ void game()
 
         buffer[(digits < fieldLength ? digits : fieldLength) - 1] = pi[i];
         printBufferEmphasized(digits, textColorRGB, correctionColorRGB);
-        Timing::msleep(1500);
+        waitForEXE();
 
         return;
       }
@@ -219,5 +272,7 @@ int main()
     }
 
     game();
+
+    printScoreBlanck();
   }
 }
