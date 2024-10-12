@@ -15,7 +15,6 @@ constexpr uint16_t smallFontWidth = 7, smallFontHeight = 14;
 constexpr uint8_t fieldLength = 13;
 constexpr uint8_t fieldXOffset = (Screen::Width - (fieldLength * charWidth)) / 2;
 constexpr uint8_t fieldYOffset = (Screen::Height - charHeight) / 2;
-
 constexpr uint8_t scoreLength = 11;
 
 constexpr uint16_t startupProgress = 4;
@@ -23,6 +22,8 @@ constexpr uint16_t startupProgress = 4;
 Keyboard::State keyState;
 
 char buffer[fieldLength];
+
+bool hundredthMode = false;
 
 void printBuffer(ColorRGB textColor=textColorRGB)
 {
@@ -43,7 +44,7 @@ void printBufferEmphasized(uint16_t digits, ColorRGB textColor, ColorRGB lastCha
   }
 }
 
-void printBlanck()
+void printBlank()
 {
   Display::pushRectUniform(Rect(fieldXOffset, fieldYOffset, fieldLength * charWidth, charHeight), fieldColorRGB);
 }
@@ -108,6 +109,7 @@ char waitForInput()
     if (keyPress(Key::Dot)) return '.';
     if (keyPress(Key::Back)) return '\e';
     if (keyPress(Key::EXE) || keyPress(Key::OK)) return '\n';
+    if (keyPress(Key::Shift)) return '^';
   }
 }
 
@@ -177,13 +179,24 @@ void printScore(uint16_t n, uint16_t m)
   Display::drawString(scoreBuffer, Point(fieldXOffset + fieldLength * charWidth - scoreLength * smallFontWidth, fieldYOffset - 5 - 4 - smallFontHeight), false, borderColorRGB, bgColorRGB);
 }
 
-void printScoreBlanck()
+void printScoreBlank()
 {
   Display::pushRectUniform(Rect(fieldXOffset + fieldLength * charWidth - scoreLength * smallFontWidth, fieldYOffset - 5 - 4 - smallFontHeight, scoreLength * smallFontWidth, smallFontHeight), bgColorRGB);
 }
 
-void printLabelBlanck(){
+void printSubtitleBlank()
+{
   Display::pushRectUniform(Rect((Screen::Width - smallFontWidth * 26) / 2, 150, smallFontWidth * 26, smallFontHeight), bgColorRGB);
+}
+
+void printModeLabel()
+{
+  Display::drawString(hundredthMode ? "shift: hundredth mode" : "shift: tenth mode    ", Point(0, Screen::Height - smallFontHeight), false, borderColorRGB, bgColorRGB);
+}
+
+void printModeLabelBlank()
+{
+  Display::pushRectUniform(Rect(0, Screen::Height - smallFontHeight, 21 * smallFontWidth, smallFontHeight), bgColorRGB);
 }
 
 void spellPi(uint16_t digits){
@@ -192,7 +205,15 @@ void spellPi(uint16_t digits){
       writePi(i);
       printBuffer();
       printScore(i, digits);
-      Timing::msleep(i > digits - 4 ? 300 : 100);
+      if (hundredthMode){
+        if (i % 2 == 0){
+          Timing::msleep(i > digits - 8 ? 300 : 100);
+        }
+      }
+      else
+      {
+        Timing::msleep(i > digits - 4 ? 300 : 100);
+      }
     }
     Timing::msleep(1000);
 }
@@ -214,8 +235,20 @@ void gameOver(uint16_t i, char input){
   waitForConfirm();
 }
 
+void rightSequence()
+{
+  for (uint8_t i = 0; i < 2; i++)
+  {
+    Timing::msleep(100);
+    printBuffer(rightColorRGB);
+    Timing::msleep(100);
+    printBlank();
+  }
+  Timing::msleep(1000);
+}
+
 void gameWon(){
-  printBlanck();
+  printBlank();
   Display::drawString("GG - by Valmontechno", Point((Screen::Width - largeFontWidth * 20) / 2, (Screen::Height - largeFontHeight) / 2), true, rightColorRGB, fieldColorRGB);
   waitForConfirm();
 }
@@ -227,13 +260,13 @@ void game(uint16_t digitProgress)
     // spell pi
     spellPi(digitProgress);
 
-    printBlanck();
+    printBlank();
     printScore(0, digitProgress);
 
     for (uint16_t i = 0; i < digitProgress; i++)
     {
       char input = waitForInput();
-      if (input == '\n')
+      if (input == '\n' or input == '^')
       {
         i--;
       }
@@ -258,16 +291,8 @@ void game(uint16_t digitProgress)
     }
 
     // right sequence
-    for (uint8_t i = 0; i < 2; i++)
-    {
-      Timing::msleep(100);
-      printBuffer(rightColorRGB);
-      Timing::msleep(100);
-      printBlanck();
-    }
-    Timing::msleep(1000);
-
-    digitProgress++;
+    rightSequence();
+    digitProgress += hundredthMode ? 2 : 1;
 
     if (digitProgress > piDigits)
     {
@@ -298,19 +323,42 @@ int main()
     Display::drawString("Press EXE", Point((Screen::Width - largeFontWidth * 9) / 2, (Screen::Height - largeFontHeight) / 2), true, textColorRGB, fieldColorRGB);
     Display::drawString("or type 3.14 and press EXE", Point((Screen::Width - smallFontWidth * 26) / 2, 150), false, borderColorRGB, bgColorRGB);
 
+    printModeLabel();
+
     for (uint16_t i = 0; i < piDigits; i++)
     {
       uint16_t digits = i + 1;
       char input = waitForInput();
       if (input == '\n')
       {
-        printLabelBlanck();
-        game(digits > startupProgress ? digits : startupProgress);
+        printSubtitleBlank();
+        printModeLabelBlank();
+        if (digits > startupProgress){
+          if (hundredthMode)
+          {
+            game(digits % 2 == 0 ? digits : digits + 1);
+          }
+          else
+          {
+            game(digits);
+          }
+        }
+        else
+        {
+          game(startupProgress);
+        }
         break;
       }
       else if (input == '\e')
       {
         return 0; // exit
+      }
+      else if (input == '^'){
+        if (i == 0){
+          hundredthMode = ! hundredthMode;
+          printModeLabel();
+        }
+        i--;
       }
       else if (input == pi[i])
       {
@@ -318,9 +366,11 @@ int main()
         writePi(digits);
         printBuffer();
         printScore(digits, 0);
+        printModeLabelBlank();
 
         if (digits == piDigits){
-        printLabelBlanck();
+          printSubtitleBlank();
+          rightSequence();
           gameWon();
           break;
         }
@@ -328,13 +378,17 @@ int main()
       else
       {
         // game over
-        printLabelBlanck();
-        gameOver(i, input);
+        if (i > 0)
+        {
+          printSubtitleBlank();
+          printModeLabelBlank();
+          gameOver(i, input);
+        }
         break;
       }
     }
 
-    printScoreBlanck();
+    printScoreBlank();
 
   }
 }
