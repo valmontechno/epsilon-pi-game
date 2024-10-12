@@ -1,4 +1,4 @@
-# π Game for Epsilon
+# Pi Game for Epsilon
 
 A game to learn the decimals of π, on a [NumWorks calculator](https://www.numworks.com).
 
